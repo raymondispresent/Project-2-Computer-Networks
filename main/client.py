@@ -19,8 +19,9 @@ def send(msg):
     client.send(message)
     print(client.recv(2048).decode('utf-8'))
 
-send("Hello World!")
+print("Please input 'start' to send test message to server")
 input("start")
-
+send("test!")
+print("Please input 'disconnect' to send disconnect message to server"
 
 send(DISCONNECT_MESSAGE)
