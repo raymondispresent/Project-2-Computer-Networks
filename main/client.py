@@ -22,6 +22,7 @@ def send(msg):
 print("Please input 'start' to send test message to server")
 input("start")
 send("test!")
-print("Please input 'disconnect' to send disconnect message to server"
+input("disconnect")
+print("Please input 'disconnect' to send disconnect message to server")
 
 send(DISCONNECT_MESSAGE)
