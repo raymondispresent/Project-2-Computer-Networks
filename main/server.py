@@ -22,8 +22,12 @@ def handle_client(conn, addr):
             msg = conn.recv(msg_length).decode('utf-8')
             if msg == DISCONNECT_MESSAGE:
                 connected = False
-            print(f"[{addr}] {msg}")
-            conn.send("Message received from house ".encode('utf-8'))
+                conn.send("Disconnect message received from house ".encode('utf-8'))
+            else:
+                conn.send("Message received from house ".encode('utf-8'))
+                print(f"[{addr}] {msg}")
+
+
 
     conn.close()
 
