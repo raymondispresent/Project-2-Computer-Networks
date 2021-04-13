@@ -1,28 +1,46 @@
+"""
+Client that sends the file (uploads)
+"""
 import socket
+import tqdm
+import os
+import argparse
 
-HEADER = 64
-PORT = 5050
-FORMAT = 'utf-8'
-DISCONNECT_MESSAGE = "DISCONNECTFROMTHESERVERLOL"
-SERVER = "192.168.0.66"
-ADDR = (SERVER, PORT)
+SEPARATOR = "<SEPARATOR>"
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(ADDR)
+BUFFER_SIZE = 1024 * 4
+filename = "data.csv"
+host = "192.168.0.66"
+port = 5001
 
-def send(msg):
-    message = msg.encode('utf-8')
-    msg_length = len(message)
-    send_length = str(msg_length).encode('utf-8')
-    send_length += b' ' * (HEADER - len(send_length))
-    client.send(send_length)
-    client.send(message)
-    print(client.recv(2048).decode('utf-8'))
 
-print("Please input 'start' to send test message to server")
-input("start")
-send("test!")
-print("Please input 'disconnect' to send disconnect message to server")
-input("disconnect")
+# get the file size
+filesize = os.path.getsize(filename)
+# create the client socket
+s = socket.socket()
+print(f"[+] Connecting to {host}:{port}")
+s.connect((host, port))
+print("[+] Connected.")
 
-send(DISCONNECT_MESSAGE)
+# send the filename and filesize
+s.send(f"{filename}{SEPARATOR}{filesize}".encode())
+
+# start sending the file
+progress = tqdm.tqdm(range(filesize), f"Sending {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+with open(filename, "rb") as f:
+    while True:
+        # read the bytes from the file
+        bytes_read = f.read(BUFFER_SIZE)
+        if not bytes_read:
+            # file transmitting is done
+            break
+        # we use sendall to assure transimission in 
+        # busy networks
+        s.sendall(bytes_read)
+        # update the progress bar
+        progress.update(len(bytes_read))
+
+# close the socket
+s.close()
+
+send_file()

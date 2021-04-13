@@ -1,45 +1,60 @@
-import socket 
-import threading
-import time
+"""
+Server receiver of the file
+"""
+import socket
+import tqdm
+import os
 
-HEADER = 64
-PORT = 5050
-SERVER = "192.168.0.66"
-ADDR = (SERVER, PORT)
-DISCONNECT_MESSAGE = "DISCONNECTFROMTHESERVERLOL"
-REPORT_MESSAGE = "REPORTTHEVALUES"
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(ADDR)
+# device's IP address
+SERVER_HOST = "192.168.0.66"
+SERVER_PORT = 5001
 
-def handle_client(conn, addr):
-    print(f"[NEW CONNECTION] {addr} connected.")
+# receive 4096 bytes each time
+BUFFER_SIZE = 4096
 
-    connected = True
-    while connected:
-        msg_length = conn.recv(HEADER).decode('utf-8')
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode('utf-8')
-            if msg == DISCONNECT_MESSAGE:
-                connected = False
-                conn.send("Disconnect message received from house ".encode('utf-8'))
-            else:
-                conn.send("Message received from house ".encode('utf-8'))
-                print(f"[{addr}] {msg}")
+SEPARATOR = "<SEPARATOR>"
 
+# create the server socket
+# TCP socket
+s = socket.socket()
+# bind the socket to our local address
+s.bind((SERVER_HOST, SERVER_PORT))
+# enabling our server to accept connections
+# 5 here is the number of unaccepted connections that
+# the system will allow before refusing new connections
+s.listen(5)
+print(f"[*] Listening as {SERVER_HOST}:{SERVER_PORT}")
+# accept connection if there is any
+client_socket, address = s.accept() 
+# if below code is executed, that means the sender is connected
+print(f"[+] {address} is connected.")
 
-
-    conn.close()
-
-def start():
-    server.listen()
-    print(f"Server is listening on {SERVER}")
+# receive the file infos
+# receive using client socket, not server socket
+received = client_socket.recv(BUFFER_SIZE).decode()
+filename, filesize = received.split(SEPARATOR)
+# remove absolute path if there is
+filename = "filereceived.csv"
+filemame = os.path.basename(filename)
+# convert to integer
+filesize = int(filesize)
+# start receiving the file from the socket
+# and writing to the file stream
+progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+with open(filename, "wb") as f:
     while True:
-        conn, addr = server.accept()
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
-        thread.start()
-        print(f"Active Connections {threading.activeCount() - 1}")
+        # read 1024 bytes from the socket (receive)
+        bytes_read = client_socket.recv(BUFFER_SIZE)
+        if not bytes_read:
+            # nothing is received
+            # file transmitting is done
+            break
+        # write to the file the bytes we just received
+        f.write(bytes_read)
+        # update the progress bar
+        progress.update(len(bytes_read))
 
-
-print("Server monitoring home energy consumption is starting...")
-start()
+# close the client socket
+client_socket.close()
+# close the server socket
+s.close()
