@@ -25,7 +25,7 @@ def receive_file():
     filesize = int(filesize)
     with open(filename, "wb") as f:
         while True:
-            bytes_read = client_socket.recv(BUFFER_SIZE)
+            bytes_read = client_socket.recv(filesize)
             if not bytes_read:
                 break
             f.write(bytes_read)
