@@ -21,7 +21,6 @@ print(f"[+] {address} is connected.")
 def receive_file():
     received = client_socket.recv(BUFFER_SIZE).decode()
     filename, filesize = received.split(SEPARATOR)
-    filename = "filereceived.csv"
     filemame = os.path.basename(filename)
     filesize = int(filesize)
     with open(filename, "wb") as f:
@@ -32,5 +31,7 @@ def receive_file():
             f.write(bytes_read)
     client_socket.close()
     s.close() 
+
+    
 
 receive_file()
