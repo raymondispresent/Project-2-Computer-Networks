@@ -14,7 +14,8 @@ def handle_client(conn, addr):
     print(f"[+] {addr} is connected.")
     received = conn.recv(BUFFER_SIZE).decode()
     filename, filesize = received.split(SEPARATOR)
-    filemame = os.path.basename(filename)
+    filename = os.path.basename(filename)
+    filesize = int(filesize)
     with open(filename, "wb") as f:
         while True:
             bytes_read = conn.recv(BUFFER_SIZE)

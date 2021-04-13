@@ -21,6 +21,7 @@ def sendfile():
         while True:
             bytes_read = f.read(BUFFER_SIZE)
             if not bytes_read:
+                print("File done sending")
                 break
             s.sendall(bytes_read)
     s.close()
